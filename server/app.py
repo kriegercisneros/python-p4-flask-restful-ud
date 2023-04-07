@@ -79,6 +79,42 @@ class NewsletterByID(Resource):
         )
 
         return response
+    
+    #we need to pass the id in from the URL and use it 
+    #to retrieve the record we are updating.  we want to 
+    #leave it as a Newsletter obj instead of vconverting it 
+    #to a dict, since we want to change the attributes of the
+    #record
+    def patch(self, id):
+        #filter_by() method specifies the filter condition using kwargs
+        #filters the records in the Newsletter based of the value of 
+        #the id attribute.  kw id refers to the id attr of the Newsletter
+        #model
+        record = Newsletter.query.filter_by(id=id).first()
+        #looping through the form data gives us its keys, the attributes
+        #names to be changed.  From there, we can set each attribute on 
+        #Newsletter obj to its new value with setattr()
+        for attr in request.form:
+            setattr(record, attr, request.form[attr])
+
+        db.session.add(record)
+        db.session.commit()
+
+        response=make_response(record.to_dict(), 200)
+
+        return response
+
+    def delete(self, id):
+        #the filter method specifies the filter based on the comparision 
+        # operator 
+        record=Newsletter.query.filter(Newsletter.id==id).first()
+
+        db.session.delete(record)
+        db.session.commit()
+
+        response_dict = {"message":"record successfullt deleted"}
+        response = make_response(response_dict, 200)
+        return response
 
 api.add_resource(NewsletterByID, '/newsletters/<int:id>')
 
